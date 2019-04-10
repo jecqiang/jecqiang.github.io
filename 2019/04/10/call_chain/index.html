@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head><meta name="generator" content="Hexo 3.8.0">
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!--Description-->
+    
+        <meta name="description" content="周泽强个人博客">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="zeqiang.zhou">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="调用链架构">
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Jec">
+
+    <!--Page Cover-->
+    
+        <meta property="og:image" content>
+    
+
+    <!-- Title -->
+    
+    <title>调用链架构 - Jec</title>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/sass/main.css">
+
+    <!--[if lt IE 8]>
+        <script src="/js/ie/html5shiv.js"></script>
+    <![endif]-->
+
+    <!--[if lt IE 8]>
+        <link rel="stylesheet" href="/sass/ie8.css">
+    <![endif]-->
+
+    <!--[if lt IE 9]>
+        <link rel="stylesheet" href="/sass/ie9.css">
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdn.rawgit.com/noelboss/featherlight/1.3.5/release/featherlight.min.css" type="text/css" rel="stylesheet">
+
+    <!-- Google Analytics -->
+    
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-138071038-1', 'auto');
+        ga('send', 'pageview');
+
+    </script>
+
+
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Menu -->
+        <!-- Header -->
+<header id="header">
+    <div class="inner">
+
+        <!-- Logo -->
+        <a href="/" class="logo">
+            <span class="symbol"><img src="/images/logo.svg" alt></span><span class="title">Jec</span>
+        </a>
+
+        <!-- Nav -->
+        <nav>
+            <ul>
+                <li><a href="#menu">Menu</a></li>
+            </ul>
+        </nav>
+
+    </div>
+</header>
+
+<!-- Menu -->
+<nav id="menu">
+    <h2>Menu</h2>
+    <ul>
+        
+            <li>
+                <a href="/">首页</a>
+            </li>
+        
+            <li>
+                <a href="/archives">归档</a>
+            </li>
+        
+            <li>
+                <a href="/about.html">关于我</a>
+            </li>
+        
+    </ul>
+</nav>
+
+
+        <div id="main">
+            <div class="inner">
+
+                <!-- Main Content -->
+                
+
+    <h1>调用链架构</h1>
+
+
+
+<!-- Gallery -->
+
+
+<!-- Content -->
+<h1 id="简述"><a href="#简述" class="headerlink" title="简述"></a>简述</h1><p>随着业务越来越复杂，系统已经进行各种拆分，目前已拆分出公共服务 (common)、用户服务（customers）、订单服务（orders）、支付服务（payment）、产品服务（products）、购物车服务（shopcart）。一个简单前端的请求，后台可能经过若干个的服务调用才能完成完整的数据响应。当请求响应慢或者不可用时，开发人员无法知道是哪个后台服务引起的，这时需要解决如何快速定位服务故障点，解决微服务架构下的延迟问题。追踪分析每个请求经过哪些服务，请求总时长，每个服务时间百分比。以帮助开发人员定位性能瓶颈、进行性能调优。因此监控整个微服务架构的调用链十分必要。</p>
+<h1 id="功能设计"><a href="#功能设计" class="headerlink" title="功能设计"></a>功能设计</h1><ol>
+<li>低侵入性，应用透明：作为非业务组件，尽可能减少侵入业务系统，对于使用方透明，减少开发人员的负担。</li>
+<li>低损耗：服务调用埋点本身带来性能上损耗，尽可能降低跟踪的损耗。实际中也可以配置采样率的方式，只选择一部分请求去分析请求路径。</li>
+<li>扩展性：支持分布式部署，具备良好的扩展性</li>
+<li>数据采集方式：支持多种方式 http、mq、离线日志，前期采用mq方式</li>
+<li>分析和统计调用链数据：一条调用链的日志经过哪些服务器，请求总时间，分别时间占比，存储到数据库</li>
+<li>针对各个服务进行分析，计算，提供可视化的查询接口</li>
+<li>采样率：进行采样，每个应用和服务可以自己设置采样率</li>
+<li>数据清洗：数据保留一段时间，之前的数据则被清洗</li>
+<li>接口性能趋势分析：提高性能分析图（二期做）</li>
+</ol>
+<h1 id="架构设计"><a href="#架构设计" class="headerlink" title="架构设计"></a>架构设计</h1><p><img src="https://ws4.sinaimg.cn/large/006tNc79gy1fyzgvrua9oj31bi0ok42j.jpg" width="80%"></p>
+<h1 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h1><h5 id="概念术语："><a href="#概念术语：" class="headerlink" title="概念术语："></a>概念术语：</h5><ol>
+<li>trace : 一次完整的微服务调用跟踪链路</li>
+<li><p>span : 追踪服务调用的基本结构，表示跨服务的一次调用。多个span组合成一次trace追踪记录</p>
+<ul>
+<li>traceId :  标记一次请求的追踪，通过traceId串联起整个调用链，相关的spans都有相同的traceId</li>
+<li>id : span id标记服务ID</li>
+<li>name : span的名称，一般是接口的方法</li>
+<li>parentId : 可选的ID，当前span的父span id，通过parent_id来保证span之间的关系，如果没有parendId，则表示当前的span为根span</li>
+<li>timestamp : span创建时的时间戳，使用的单位是微妙，需要注意各主机间的时钟偏差。</li>
+<li>duration : 持续时间使用的单位是微秒</li>
+<li>annotation : 在span中的标注点，记录整个span时间段内发生的事件<ul>
+<li>sr : Server Receive 服务器接受请求，开始处理。</li>
+<li>ss : Server Send 服务器完成处理，给客户端应答。ss 减去 sr 时间戳便可得到服务端需要的处理请求时间</li>
+</ul>
+</li>
+<li>customAnnotation : 用户自定义事件<ul>
+<li>遵守<code>key-value</code>格式存储</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>transport 传输方式：http, mq，log（目前只实现支持mq）</p>
+</li>
+<li>ctrace ：collector，database, api, web UI组件构成ctrace调用链追踪中心<ul>
+<li>collector : 收集器，追踪数据到达collector则被验证，存储</li>
+<li>database ： 数据库存储器，追踪数据被存到到这义工接口查询。暂时支持mysql，后续可以存入到elasticsearch</li>
+<li>api : 提供json api来查找和检索跟踪数据，主要给web ui使用</li>
+<li>web UI : 可视化的查询和分析追踪数据的界面</li>
+<li>cleaner：数据清洗，过期数据清洗，保留一段时间</li>
+</ul>
+</li>
+</ol>
+<h1 id="ps"><a href="#ps" class="headerlink" title="ps :"></a>ps :</h1><ul>
+<li>耗时计算:<ul>
+<li>服务处理耗时 = SS – SR</li>
+<li>网络耗时 = 服务调用耗时 – 服务处理耗时</li>
+</ul>
+</li>
+<li>采样率：分布式跟踪系统的实现要求性能低损耗，尤其在生产环境中不能影响到核心业务的性能，也不可能每次请求都跟踪，所以要进行采样，每个应用和服务可以自己设置采样率。采样率应该是在每个应用自己的配置里设置的，这样每个应用可以动态调整，特别是应用刚上线时可以适当调高采样率  </li>
+</ul>
+<h1 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h1><p>demo :</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"service"</span>: <span class="string">"common"</span>,</span><br><span class="line">  <span class="attr">"traceId"</span>: <span class="string">"9a643d30ab09de4ac5b746a6f4e4bc22"</span>,</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"index/traceTest"</span>,</span><br><span class="line">  <span class="attr">"id"</span>: <span class="string">"4ad02f4cdd9f531374a3506b5b674984"</span>,</span><br><span class="line">  <span class="attr">"parentId"</span>: <span class="string">""</span>,</span><br><span class="line">  <span class="attr">"timestamp"</span>: <span class="number">1548035574421435</span>,</span><br><span class="line">  <span class="attr">"duration"</span>: <span class="number">1065205</span>,</span><br><span class="line">  <span class="attr">"last_time"</span>: <span class="number">1548035575486640</span>,</span><br><span class="line">  <span class="attr">"customAnnotation"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"key"</span>: <span class="string">"client_ip"</span>,</span><br><span class="line">      <span class="attr">"value"</span>: <span class="string">"127.0.0.1"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"key"</span>: <span class="string">"request_method"</span>,</span><br><span class="line">      <span class="attr">"value"</span>: <span class="string">"GET"</span></span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">"annotation"</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"serviceName"</span>: <span class="string">"common"</span>,</span><br><span class="line">      <span class="attr">"ipv4"</span>: <span class="string">"127.0.0.1"</span>,</span><br><span class="line">      <span class="attr">"timestamp"</span>: <span class="number">1548035574420776</span>,</span><br><span class="line">      <span class="attr">"value"</span>: <span class="string">"sr"</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">"serviceName"</span>: <span class="string">"common"</span>,</span><br><span class="line">      <span class="attr">"ipv4"</span>: <span class="string">"127.0.0.1"</span>,</span><br><span class="line">      <span class="attr">"timestamp"</span>: <span class="number">1548035575486636</span>,</span><br><span class="line">      <span class="attr">"value"</span>: <span class="string">"ss"</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="部分截图"><a href="#部分截图" class="headerlink" title="部分截图"></a>部分截图</h1><p><img src="https://ws1.sinaimg.cn/large/006tNc79gy1fzdzv71utkj313x0nfn15.jpg" width="80%"><br><img src="https://ws1.sinaimg.cn/large/006tNc79gy1fze038b4qxj313s0m0784.jpg" width="80%"></p>
+
+
+<!-- Tags -->
+
+
+
+<div class="tags">
+    
+</div>
+
+
+
+<!-- Comments -->
+<div>
+    
+
+
+</div>
+
+
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+<footer id="footer">
+    <div class="inner">
+        <section>
+            <h2>About</h2>
+            <div>
+                我叫Jec，就职于banggood海外电商。常用语言php、go，主要负责后端研发，架构设计，中间件开发
+            </div>
+        </section>
+        <section>
+            <h2>Follow</h2>
+            <ul class="icons">
+                
+                    <li><a href="https://twitter.com/?lang=en" class="icon style2 fa-twitter" target="_blank"><span class="label">Twitter</span></a></li>
+                
+                
+                    <li><a href="https://www.facebook.com/" class="icon style2 fa-facebook" target="_blank"><span class="label">Facebook</span></a></li>
+                
+                
+                
+                
+                    <li><a href="https://github.com/jecqiang" class="icon style2 fa-github" target="_blank"><span class="label">GitHub</span></a></li>
+                
+                
+                
+                
+                
+                    <li><a href="mailto:zeqiang.zhou@gmail.com" class="icon style2 fa-envelope-o" target="_blank"><span class="label">Email</span></a></li>
+                
+                
+                    <li><a href="\#" class="icon style2 fa-rss" target="_blank"><span class="label">RSS</span></a></li>
+                
+            </ul>
+        </section>
+        <ul class="copyright">
+            <li>&copy; Untitled. All rights reserved</li>
+            <li>Design: <a href="http://html5up.net" target="_blank">HTML5 UP</a></li>
+            <li>Hexo: <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></li>
+        </ul>
+    </div>
+</footer>
+    </div>
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="/js/jquery.min.js"></script>
+
+<!-- skel -->
+<script src="/js/skel.min.js"></script>
+
+<!-- Custom Code -->
+<script src="/js/util.js"></script>
+
+<!--[if lte IE 8]>
+<script src="/js/ie/respond.min.js"></script>
+<![endif]-->
+
+<!-- Custom Code -->
+<script src="/js/main.js"></script>
+
+<!-- Gallery -->
+<script src="//cdn.rawgit.com/noelboss/featherlight/1.3.5/release/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+<script type="text/javascript">
+    var disqus_shortname = 'klugjo';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+</body>
+
+</html>
