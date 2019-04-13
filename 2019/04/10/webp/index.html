@@ -20,6 +20,8 @@
 
     <!--Open Graph Title-->
     
+        <meta property="og:title" content="webp图片实践">
+    
 
     <!--Open Graph Site Name-->
     <meta property="og:site_name" content="Jec">
@@ -31,7 +33,7 @@
 
     <!-- Title -->
     
-    <title>Archives - Jec</title>
+    <title>webp图片实践 - Jec</title>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/sass/main.css">
@@ -120,33 +122,47 @@
                 <!-- Main Content -->
                 
 
-<section class="archives">
+    <h1>webp图片实践</h1>
+
+
+
+<!-- Gallery -->
+
+
+<!-- Content -->
+<h3 id="背景说明："><a href="#背景说明：" class="headerlink" title="背景说明："></a>背景说明：</h3><p>webp是谷歌开发可为web图片有效压缩的一种图像格式。和png图片对比大小约缩小25~34%。Chrome，Firefox，Edge，Opera，安卓4.2以上浏览器兼容webp图片。新开项目是做海外电商的，页面会有大量的商品图片。为了加快访问的速度和节省服务器宽带资源，凡是支持webp格式的客户端都使用了webp图片。</p>
+<p>先安装libwebp</p>
+<ul>
+<li>下载地址：<a href="http://downloads.webmproject.org/releases/webp/libwebp-1.0.2.tar.gz" target="_blank" rel="noopener">http://downloads.webmproject.org/releases/webp/libwebp-1.0.2.tar.gz</a><br>tar -zxvf libwebp-1.0.2.tar.gz cd libwebp-1.0.2<br>./configure &amp;&amp; make &amp;&amp; make install<h1 id="默认会安装到-usr-local-bin-usr-local-lib"><a href="#默认会安装到-usr-local-bin-usr-local-lib" class="headerlink" title="默认会安装到/usr/local/bin /usr/local/lib"></a>默认会安装到/usr/local/bin /usr/local/lib</h1></li>
+</ul>
+<p>安装ImageMagick<br>tar -zxvf ImageMagick 7.0.8-28.tar.gz<br>cd ImageMagick 7.0.8-28<br>./configure –with-webp<br>make &amp;&amp; make install<br>查看ImageMagick支持的格式，确认包含 webp<br>convert -list format</p>
+<p>安装php扩展 imageMagick<br>下载：<a href="https://pecl.php.net/get/imagick-3.4.3.tgz" target="_blank" rel="noopener">https://pecl.php.net/get/imagick-3.4.3.tgz</a><br>tar -zxvf imagick-3.4.3.tgz<br>cd imagick-3.4.3.tgz<br>/usr/local/php/bin/phpize<br>./configure –with-php-config=/usr/local/php/bin/php-config<br>make &amp;&amp; make install<br>/etc/php.ini 加上extension=imagick.so<br>重启php-fpm</p>
+<p>有动画的gif图片转webp<br>要下载谷歌的gif2webp库：<a href="https://storage.googleapis.com/downloads.webmproject.org/releases/webp/index.html" target="_blank" rel="noopener">https://storage.googleapis.com/downloads.webmproject.org/releases/webp/index.html</a><br>用法：<a href="https://developers.google.com/speed/webp/docs/gif2webp" target="_blank" rel="noopener">https://developers.google.com/speed/webp/docs/gif2webp</a></p>
+<p>使用webp方案和流程：<br>1、后台服务接口返回.webp格式，前端判断不支持就去掉.webp，如果后端返回的.jpg图片就不用处理，<br>列如：j接口返回<a href="https://s3img.chic.deals/xxxxxxx.jpg.webp，safari浏览器则去掉.webp后缀发起请求。" target="_blank" rel="noopener">https://s3img.chic.deals/xxxxxxx.jpg.webp，safari浏览器则去掉.webp后缀发起请求。</a><br>2、其他站点处理不一样，因为我们是用的是S3，这些图片资源不经过我们自己的服务器，运维没法处理。其他站点是经过我们自己图片服务器的，没有就自动生成 .webp。后端完全不用改<br>3、后端修改产品 ，分类图片的同步，生成多一份.webp图片<br>4、旧图片包括产品，分类，头像，poa，评论，自定义分类，banner等图片的重新生成webp图片<br>5、封装普通图片转.webp格式的方法<br>6、封装图片url拼接方法，统一使用该方法处理<br>7、修改所有上传图片的接口</p>
+
+
+<!-- Tags -->
+
+
+
+<div class="tags">
     
-    <ul class="archive-list">
-        
-            <li>
-    <a href="/2019/04/10/call_chain/">调用链架构</a>
-</li>
+</div>
 
-        
-            <li>
-    <a href="/2019/04/13/developer-tools/">开发工具分享</a>
-</li>
 
-        
-            <li>
-    <a href="/2019/04/10/hello-world/">Hello World</a>
-</li>
 
-        
-            <li>
-    <a href="/2019/04/10/webp/">webp图片实践</a>
-</li>
+<!-- Comments -->
+<div>
+    
+    <hr>
+    <h3>Comments:</h3>
+    <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 
-        
-    </ul>
-</section><!-- end main -->
 
+
+</div>
 
 
 
@@ -226,7 +242,7 @@
         var dsq = document.createElement('script');
         dsq.type = 'text/javascript';
         dsq.async = true;
-        dsq.src = '//jecqiang.com/js/count.js';
+        dsq.src = '//jecqiang.com/js/embed.js';
         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
     }());
 </script>
